@@ -1,0 +1,8 @@
+[package]
+name = "cwlib-rs"
+version = "0.0.1"
+edition = "2024"
+
+[dependencies]
+byteorder = "1.5"
+num_enum = "0.7"
