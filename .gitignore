@@ -2,3 +2,7 @@
 
 # Game resources
 *.map
+
+# Scripts
+*.sh
+*.ps1
