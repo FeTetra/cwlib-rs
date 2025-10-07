@@ -29,15 +29,6 @@ impl FileDBHeader {
     }
 }
 
-impl Default for FileDBHeader {
-    fn default() -> Self {
-        FileDBHeader { 
-            db_revision: (FileDBRevision::Unknown), 
-            entry_count: (0),
-        }
-    }
-}
-
 impl FileDBEntry {
     pub fn print_dbentry(&self) {
         println!("Path: {}", self.path);

@@ -44,7 +44,7 @@ fn file_db_deserialize(path: &str) -> io::Result<FileDB> {
 #[cfg(test)]
 mod tests {
     use crate::{ 
-        tests::readfiledb::{file_db_deserialize, file_db_serialize},
+        tests::serdesfiledb::{file_db_deserialize, file_db_serialize},
         types::filedb::{FileDBHeader, FileDBEntry, FileDB},
         enums::filedbrevision::FileDBRevision,
     };

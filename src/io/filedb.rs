@@ -14,6 +14,11 @@ impl Deserializer for FileDB {
         let db_revision = FileDBRevision::try_from(raw).unwrap();
         let entry_count = u32::deserialize_from::<_, B>(reader)?;
 
+        let header = FileDBHeader {
+                db_revision,
+                entry_count,
+        };
+
         // Deserialize entries
         let mut entries = Vec::with_capacity(entry_count as usize);
         for _ in 0..entry_count {
@@ -46,10 +51,7 @@ impl Deserializer for FileDB {
         }
 
         Ok(FileDB {
-            header: FileDBHeader {
-                db_revision,
-                entry_count,
-            },
+            header,
             entries,
         })
     }

@@ -2,6 +2,7 @@
 
 # Game resources
 *.map
+*.farc
 
 # Scripts
 *.sh
