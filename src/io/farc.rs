@@ -1,4 +1,4 @@
-use std::io::SeekFrom;
+use std::io::{self, SeekFrom};
 
 use crate::io::serdes::{BufSerializer, Deserializer, Serializer, SizedDeserializer};
 use crate::io::helpers::filehelper;
@@ -63,6 +63,36 @@ impl Serializer for FileArchive {
 
         self.footer.entry_count.serialize_to::<_, B>(writer)?;
         self.footer.magic.serialize_to::<_>(writer)?;
+
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+pub enum ArchiveError {
+    NotFound,
+}
+
+// This should use a hashmap, but some typing needs to be reworked later anyways
+impl FileArchive {
+    pub fn get_entry_by_hash(&self, hash: &[u8]) -> Result<&FARCTableEntry, ArchiveError> {
+        for entry in &self.entries {
+            if hash == entry.file_hash {
+                return Ok(entry);
+            }
+        }
+
+        Err(ArchiveError::NotFound)
+    }
+}
+
+impl FARCTableEntry {
+    pub fn get_file<R: std::io::Read + std::io::Seek, W: std::io::Write>(&self, reader: &mut R, writer: &mut W) -> io::Result<()> {
+        let mut buffer = vec![0u8; self.file_size as usize];
+        reader.seek(SeekFrom::Start(self.file_offset as u64))?;
+        reader.read_exact(&mut buffer)?;
+
+        writer.write_all(&buffer)?;
 
         Ok(())
     }

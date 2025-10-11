@@ -1,2 +1,5 @@
-pub mod serdesfiledb;
-pub mod serdesfilearchive;
+pub mod files;
+
+pub mod testserdesfiledb;
+pub mod testserdesfilearchive;
+pub mod testgetfile;

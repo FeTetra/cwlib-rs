@@ -85,3 +85,40 @@ impl Serializer for FileDB {
         Ok(())
     }
 }
+
+#[derive(Debug)]
+pub enum FileDBError {
+    NotFound,
+}
+
+impl FileDB {
+    pub fn get_entry_by_guid(&self, guid: u32) -> Result<&FileDBEntry, FileDBError> {
+        for entry in &self.entries {
+            if guid == entry.guid {
+                return Ok(entry);
+            }
+        }
+
+        Err(FileDBError::NotFound)
+    }
+
+    pub fn get_entry_by_hash(&self, hash: Vec<u8>) -> Result<&FileDBEntry, FileDBError> {
+        for entry in &self.entries {
+            if hash == entry.hash {
+                return Ok(entry);
+            }
+        }
+
+        Err(FileDBError::NotFound)
+    }
+
+    pub fn get_entry_by_path(&self, path: String) -> Result<&FileDBEntry, FileDBError> {
+        for entry in &self.entries {
+            if path == entry.path {
+                return Ok(entry);
+            }
+        }
+
+        Err(FileDBError::NotFound)
+    }
+}

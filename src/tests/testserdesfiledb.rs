@@ -1,50 +1,8 @@
-use std::fs::File;
-use std::fs::OpenOptions;
-use std::io::{self, BufReader, BufWriter};
-use byteorder::BigEndian;
-
-use crate::io::serdes::{Deserializer, Serializer};
-use crate::types::filedb::{FileDB};
-
-/*
-This file technically contains okayish reference implementations of
-FileDB::serialize_to() and FileDB::deserialize_from(), in the next two 
-functions. Docs someday trust:tm:.
-*/
-
-fn file_db_serialize(filedb: &FileDB, path: &str) -> io::Result<()> {
-    let file = OpenOptions::new()
-        .write(true)
-        .create(true)
-        .truncate(true)
-        .open(path)?;
-    let mut writer = BufWriter::new(file);
-
-    filedb.serialize_to::<_, BigEndian>(&mut writer)?;
-
-    drop(writer);
-
-    Ok(())
-}
-
-fn file_db_deserialize(path: &str) -> io::Result<FileDB> {
-    let file = File::open(path)?;
-    let mut reader = BufReader::new(file);
-
-    let filedb = FileDB::deserialize_from::<_, BigEndian>(&mut reader)?;
-
-    filedb.print_filedb(); // You probably wouldn't really want to use this, we only have 3 entries, though
-
-    drop(reader);
-
-    Ok(filedb)
-}
-
 // I don't feel like writing proper asserts so pretend this isn't that bad
 #[cfg(test)]
 mod tests {
     use crate::{ 
-        tests::serdesfiledb::{file_db_deserialize, file_db_serialize},
+        tests::files::{file_db_deserialize, file_db_serialize},
         types::filedb::{FileDBHeader, FileDBEntry, FileDB},
         enums::filedbrevision::FileDBRevision,
     };
@@ -52,7 +10,7 @@ mod tests {
     #[test]
     fn test_file_db_serdes() {
         // Begin bullshit
-        let header = FileDBHeader {
+        let test_header = FileDBHeader {
             db_revision: FileDBRevision::LBP1Or2,
             entry_count: 3,
         };
@@ -82,19 +40,22 @@ mod tests {
             hash: vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
             guid: 3
         };
-        let entries = vec![test_entry1, test_entry2, test_entry3];
+        let test_entries = vec![test_entry1, test_entry2, test_entry3];
 
-        let filedb = FileDB {
-            header: header,
-            entries: entries,
+        let test_filedb = FileDB {
+            header: test_header,
+            entries: test_entries,
         };
         // End bullshit
 
-        let write = file_db_serialize(&filedb, "./blurayguids.map");
+        let write = file_db_serialize(&test_filedb, "./blurayguids.map");
         assert!(write.is_ok());
 
         let read = file_db_deserialize("./blurayguids.map");
         assert!(read.is_ok());
-        assert_eq!(read.unwrap(), filedb);
+
+        let filedb = read.unwrap();
+        assert_eq!(filedb, test_filedb);
+        filedb.print_filedb(); // You probably wouldn't really want to use this, we only have 3 entries, though
     }
 }
