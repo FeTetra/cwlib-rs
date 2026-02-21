@@ -1,13 +1,10 @@
 #[cfg(test)]
 mod tests {
-    use std::io::{BufReader, BufWriter, Write};
-    use std::fs::{File, OpenOptions};
-
+    use std::io::{BufReader, BufWriter, Write, Cursor};
     use byteorder::BigEndian;
 
     use crate::enums::filedbrevision::FileDBRevision;
-    use crate::io::serdes::{Serializer, SizedDeserializer};
-    use crate::tests::files::{file_archive_deserialize, file_db_deserialize, file_db_serialize};
+    use crate::io::serdes::{Serializer, SizedDeserializer, Deserializer};
     use crate::types::farc::{FARCFooter, FARCTableEntry, FileArchive};
     use crate::types::filedb::{FileDB, FileDBEntry, FileDBHeader};
 
@@ -103,53 +100,60 @@ mod tests {
             entries: vec![test_file_db_entry1, test_file_db_entry2, test_file_db_entry3],
         };
 
-        // Manually open a file to serialize the FARC because file_archive_serialize() accepts a path and doesn't write any FARC data
-        let file = OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open("data.farc")?;
-        let mut farc_writer = BufWriter::new(file);
-
-        farc_writer.write_all(test_dat1.as_bytes())?;
-        farc_writer.write_all(test_dat2.as_bytes())?;
-        farc_writer.write_all(test_dat3.as_bytes())?;
-        test_farc.serialize_to::<_, BigEndian>(&mut farc_writer)?;
-
-        farc_writer.flush()?;
-
         // Serialize the GUID map
-        file_db_serialize(&test_file_db, "./blurayguids.map")?;
+        let mut file_db_buf = Cursor::new(Vec::new());
+        let mut writer = BufWriter::new(file_db_buf);
+
+        test_file_db.serialize_to::<_, BigEndian>(&mut writer)?;
+
+        writer.flush()?;
+        file_db_buf = writer.into_inner()?;
+        file_db_buf.set_position(0);
+        let mut file_db_reader = BufReader::new(file_db_buf);
+
+        // Serialize the FARC
+        let mut farc_buf = Cursor::new(Vec::new());
+
+        writer = BufWriter::new(farc_buf);
+
+        // Manually write file data to FARC
+        writer.write_all(test_dat1.as_bytes())?;
+        writer.write_all(test_dat2.as_bytes())?;
+        writer.write_all(test_dat3.as_bytes())?;
+
+        test_farc.serialize_to::<_, BigEndian>(&mut writer)?;
+
+        writer.flush()?;
+        farc_buf = writer.into_inner()?; // Reclaim buffer
+        farc_buf.set_position(0);
+        let mut farc_reader = BufReader::new(farc_buf);
 
         // Deserialize everything and use GUID map to read out the files
-        let file_db = file_db_deserialize("./blurayguids.map")?;
-        let farc = file_archive_deserialize("./data.farc")?;
+        let file_db = FileDB::deserialize_from::<_, BigEndian>(&mut file_db_reader)?;
+        let farc = FileArchive::deserialize_from::<_, BigEndian>(&mut farc_reader)?;
 
-        let file = File::open("./data.farc")?;
-        let mut farc_raw_reader = BufReader::new(file);
+        file_db.print_filedb();
+        farc.print_file_archive();
 
         for i in 1..4 {
             let err = file_db.get_entry_by_guid(i);
             assert!(err.is_ok()); // Can't just return this error type
             let file_db_entry = err.unwrap();
 
-            let file = OpenOptions::new()
-                .write(true)
-                .create(true)
-                .truncate(true)
-                .open(&file_db_entry.path)?;
-            let mut writer = BufWriter::new(file);
+            let mut file_buf = Cursor::new(Vec::new());
+            let mut writer = BufWriter::new(file_buf);
 
             let err = farc.get_entry_by_hash(&file_db_entry.hash);
             assert!(err.is_ok());
             let farc_entry = err.unwrap();
 
-            farc_entry.get_file(&mut farc_raw_reader, &mut writer)?;
+            farc_entry.get_file(&mut farc_reader, &mut writer)?;
 
             writer.flush()?;
+            file_buf = writer.into_inner()?;
+            file_buf.set_position(0);
 
-            let file = File::open(&file_db_entry.path)?;
-            let mut reader = BufReader::new(file);
+            let mut reader = BufReader::new(file_buf);
             let read_string = String::deserialize_from(&mut reader, farc_entry.file_size as usize)?;
 
             assert!(read_string == test_dat1 || read_string == test_dat2 || read_string == test_dat3);

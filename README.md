@@ -11,7 +11,7 @@ It can (de)serialize two formats at the moment
 It can extract files out of a FARC using a SHA-1 hash (poorly)
 
 ### Running Tests
-If for whatever reason you want to run the tests I have written, clone the repository and `cd` into the downloaded folder. From here you can run `cargo test --lib -- --nocapture --test-threads=1`. Note that the tests are currently written in a way where they cannot be multithreaded (which cargo does by default) due to race conditions with using similar filenames between tests, I may fix this in the future but it's not much of an issue right now.
+If for whatever reason you want to run the tests I have written, clone the repository and `cd` into the cloned repo. From here you can run `cargo test --lib -- --nocapture`.
 
 ### Other notes
 I would like to write some reference documentation at some point on how to use this library, but right now it's so barebones that it's frankly not worth the time to even try using it for anything serious.
