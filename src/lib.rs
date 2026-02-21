@@ -1,5 +1,5 @@
-mod io;
-mod types;
-mod enums;
+pub mod io;
+pub mod types;
+pub mod enums;
 
-mod tests;
+pub mod tests;
