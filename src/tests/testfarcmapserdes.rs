@@ -27,15 +27,14 @@ mod tests {
         let test_dat1_hash_str = "09fac8dbfd27bd9b4d23a00eb648aa751789536d";
         let test_dat2_hash_str = "5d36b88bb697a2d778f024048bafabd443d74503";
         let test_dat3_hash_str = "e4a815a3e19f62f1ec79c38a5a46d7ee5af0ea3a";
-        let mut bytes: [u8; 20] = [0; 20];
+        let mut test_dat1_hash: [u8; 20] = [0; 20];
+        let mut test_dat2_hash: [u8; 20] = [0; 20];
+        let mut test_dat3_hash: [u8; 20] = [0; 20];
 
-        hex::decode_to_slice(test_dat1_hash_str, &mut bytes)?;
-        let test_dat1_hash: [u8; 20] = bytes;
-        hex::decode_to_slice(test_dat2_hash_str, &mut bytes)?;
-        let test_dat2_hash: [u8; 20] = bytes;
-        hex::decode_to_slice(test_dat3_hash_str, &mut bytes)?;
-        let test_dat3_hash: [u8; 20] = bytes;
-
+        hex::decode_to_slice(test_dat1_hash_str, &mut test_dat1_hash)?;
+        hex::decode_to_slice(test_dat2_hash_str, &mut test_dat2_hash)?;
+        hex::decode_to_slice(test_dat3_hash_str, &mut test_dat3_hash)?;
+        
         // FARC table entries
         let test_farc_entry1 = FARCTableEntry {
             file_hash: test_dat1_hash.clone(), // Clone the first time because ownership gets moved otherwise

@@ -12,7 +12,7 @@ pub struct FileDBEntry {
     pub path: String,
     pub date: u32,
     pub size: u32,
-    pub hash: [u8; 20], // I don't like this for many reasons but I can deal with it later
+    pub hash: [u8; 20],
     pub guid: u32,
 }
 
