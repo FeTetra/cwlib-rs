@@ -17,7 +17,7 @@ impl Deserializer for FileArchive {
 
         // Deserialize footer
         let entry_count = u32::deserialize_from::<_, B>(reader)?;
-        let magic = String::deserialize_from::<_>(reader, 4)?;
+        let magic = String::deserialize_from(reader, 4)?;
 
         let footer = FARCFooter {
             entry_count,
@@ -31,7 +31,7 @@ impl Deserializer for FileArchive {
         // Deserialize table
         let mut entries = Vec::with_capacity(entry_count as usize);
         for _ in 0..entry_count {
-            let file_hash = Vec::deserialize_from::<_>(reader, 0x14)?;
+            let file_hash: [u8; 20] = SizedDeserializer::deserialize_from(reader, 20)?;
             let file_offset = u32::deserialize_from::<_, B>(reader)?;
             let file_size = u32::deserialize_from::<_, B>(reader)?;
 

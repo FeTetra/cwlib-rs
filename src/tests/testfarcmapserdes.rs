@@ -1,12 +1,14 @@
 #[cfg(test)]
 mod tests {
     use std::io::{BufReader, BufWriter, Write, Cursor};
+    use std::convert::TryInto;
     use byteorder::BigEndian;
 
     use crate::enums::filedbrevision::FileDBRevision;
     use crate::io::serdes::{Serializer, SizedDeserializer, Deserializer};
     use crate::types::farc::{FARCFooter, FARCTableEntry, FileArchive};
     use crate::types::filedb::{FileDB, FileDBEntry, FileDBHeader};
+
 
     // This is completely miserable and theres almost certainly a better way to do these tests
     // This also could probably replace the testserdes(filedb/filearchive) tests entirely
@@ -21,21 +23,18 @@ mod tests {
         let test_dat2_size = 3;
         let test_dat3_size = 3;
 
-        let test_dat1_hash = vec![
-            0x94, 0x3A, 0x70, 0x2D, 0x06, 0xF3, 0x45, 
-            0x99, 0xAE, 0xE1, 0xF8, 0xDA, 0x8E, 0xF9, 
-            0xF7, 0x29, 0x60, 0x31, 0xD6, 0x99, 
-        ];
-        let test_dat2_hash = vec![
-            0x20, 0x1A, 0x6B, 0x30, 0x53, 0xCC, 0x14, 
-            0x22, 0xD2, 0xC3, 0x67, 0x0B, 0x62, 0x61, 
-            0x62, 0x21, 0xD2, 0x29, 0x09, 0x29, 
-        ];
-        let test_dat3_hash= vec![
-            0xE4, 0x96, 0xFD, 0x20, 0x13, 0x6D, 0x4B, 
-            0xB7, 0x82, 0x8E, 0xBB, 0x0A, 0xB9, 0x25, 
-            0xB1, 0xBD, 0x97, 0x72, 0x08, 0xE4, 
-        ];
+        // A tad cursed but less so than before
+        let test_dat1_hash_str = "09fac8dbfd27bd9b4d23a00eb648aa751789536d";
+        let test_dat2_hash_str = "5d36b88bb697a2d778f024048bafabd443d74503";
+        let test_dat3_hash_str = "e4a815a3e19f62f1ec79c38a5a46d7ee5af0ea3a";
+        let mut bytes: [u8; 20] = [0; 20];
+
+        hex::decode_to_slice(test_dat1_hash_str, &mut bytes)?;
+        let test_dat1_hash: [u8; 20] = bytes;
+        hex::decode_to_slice(test_dat2_hash_str, &mut bytes)?;
+        let test_dat2_hash: [u8; 20] = bytes;
+        hex::decode_to_slice(test_dat3_hash_str, &mut bytes)?;
+        let test_dat3_hash: [u8; 20] = bytes;
 
         // FARC table entries
         let test_farc_entry1 = FARCTableEntry {

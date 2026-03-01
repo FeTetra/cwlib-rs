@@ -6,3 +6,4 @@ edition = "2024"
 [dependencies]
 byteorder = "1.5"
 num_enum = "0.7"
+hex = "0.4.3"

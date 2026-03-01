@@ -6,7 +6,7 @@ pub struct FARCFooter {
 
 #[derive(Debug, PartialEq)]
 pub struct FARCTableEntry {
-    pub file_hash: Vec<u8>,
+    pub file_hash: [u8; 20],
     pub file_offset: u32,
     pub file_size: u32,
 }

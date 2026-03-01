@@ -35,7 +35,7 @@ impl Deserializer for FileDB {
 
             let date = u32::deserialize_from::<_, B>(reader)?;
             let size = u32::deserialize_from::<_, B>(reader)?;
-            let hash = Vec::deserialize_from::<_>(reader, 0x14)?;
+            let hash: [u8; 20] = SizedDeserializer::deserialize_from(reader, 0x14)?;
             let guid = u32::deserialize_from::<_, B>(reader)?;
 
             let entry = FileDBEntry {
@@ -102,7 +102,7 @@ impl FileDB {
         Err(FileDBError::NotFound)
     }
 
-    pub fn get_entry_by_hash(&self, hash: Vec<u8>) -> Result<&FileDBEntry, FileDBError> {
+    pub fn get_entry_by_hash(&self, hash: &[u8]) -> Result<&FileDBEntry, FileDBError> {
         for entry in &self.entries {
             if hash == entry.hash {
                 return Ok(entry);

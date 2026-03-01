@@ -25,6 +25,14 @@ impl Deserializer for u32 {
     }
 }
 
+impl<const N: usize> SizedDeserializer for [u8; N] {
+    fn deserialize_from<R: Read>(reader: &mut R, _size: usize) -> io::Result<Self> {
+        let mut buf = [0u8; N];
+        reader.read_exact(&mut buf)?;
+        Ok(buf)
+    }
+}
+
 impl SizedDeserializer for String {
     fn deserialize_from<R: Read>(reader: &mut R, size: usize) -> io::Result<Self> {
         let mut buf = vec![0u8; size];
@@ -63,6 +71,12 @@ impl Serializer for u16 {
 impl Serializer for u32 {
     fn serialize_to<W: Write, B: ByteOrder>(&self, writer: &mut W) -> io::Result<()> {
         writer.write_u32::<B>(*self)
+    }
+}
+
+impl<const N: usize> BufSerializer for [u8; N] {
+    fn serialize_to<W: Write + Seek>(&self, writer: &mut W) -> io::Result<()> {
+        writer.write_all(self)
     }
 }
 
